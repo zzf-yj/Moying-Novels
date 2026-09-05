@@ -50,7 +50,14 @@ export interface OpenedBook {
   chapters: Chapter[]
 }
 
+export interface AppInfo {
+  version: string
+  repositoryUrl: string
+}
+
 export interface ReaderApi {
+  getAppInfo: () => Promise<AppInfo>
+  openProjectPage: () => Promise<void>
   getState: () => Promise<PersistedState>
   importBooks: () => Promise<BookMeta[]>
   openBook: (bookId: string) => Promise<OpenedBook>

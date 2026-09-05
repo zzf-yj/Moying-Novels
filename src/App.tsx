@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import type { BookMeta, OpenedBook, PersistedState, ReaderSettings, ReadingProgress, WindowBounds } from '../shared/types'
+import type { AppInfo, BookMeta, OpenedBook, PersistedState, ReaderSettings, ReadingProgress, WindowBounds } from '../shared/types'
 
 const formatSize = (size: number): string => size < 1024 * 1024
   ? `${Math.max(1, Math.round(size / 1024))} KB`
@@ -68,6 +68,7 @@ function ResizeHandles(): React.JSX.Element {
 
 function App(): React.JSX.Element {
   const [state, setState] = useState<PersistedState | null>(null)
+  const [appInfo, setAppInfo] = useState<AppInfo | null>(null)
   const [opened, setOpened] = useState<OpenedBook | null>(null)
   const [chapterIndex, setChapterIndex] = useState(0)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -90,6 +91,9 @@ function App(): React.JSX.Element {
     window.reader.getState().then(setState).catch((error) => {
       console.error('[state-initialization-failed]', error)
       setNotice(String(error))
+    })
+    window.reader.getAppInfo().then(setAppInfo).catch((error) => {
+      console.error('[app-info-read-failed]', error)
     })
   }, [])
 
@@ -318,37 +322,45 @@ function App(): React.JSX.Element {
       )}
 
       {!opened ? (
-        <section className="shelf">
-          <div className="shelf-heading">
-            <div><span className="eyebrow">LOCAL LIBRARY</span><h1>我的小说</h1></div>
-            <button className="primary" onClick={importBooks}>＋ 导入 TXT</button>
-          </div>
-          {state.books.length === 0 ? (
-            <button className="empty-state" onClick={importBooks}>
-              <span className="empty-icon">文</span>
-              <strong>导入第一本小说</strong>
-              <small>支持 UTF-8、GBK、GB18030 编码的 TXT 文件</small>
-            </button>
-          ) : (
-            <div className="book-list">
-              {state.books.map((book) => {
-                const progress = state.progress[book.id]
-                return (
-                  <article className="book-card" key={book.id} onDoubleClick={() => openBook(book)}>
-                    <button className="book-main" onClick={() => openBook(book)}>
-                      <span className="book-mark">TXT</span>
-                      <span className="book-copy">
-                        <strong>{book.title}</strong>
-                        <small>{progress ? `上次读到第 ${progress.chapterIndex + 1} 章` : '尚未开始'} · {formatSize(book.size)}</small>
-                      </span>
-                    </button>
-                    <button className="delete" title="从书架移除" onClick={() => removeBook(book)}>移除</button>
-                  </article>
-                )
-              })}
+        <>
+          <section className="shelf">
+            <div className="shelf-heading">
+              <div><span className="eyebrow">LOCAL LIBRARY</span><h1>我的小说</h1></div>
+              <button className="primary" onClick={importBooks}>＋ 导入 TXT</button>
             </div>
-          )}
-        </section>
+            {state.books.length === 0 ? (
+              <button className="empty-state" onClick={importBooks}>
+                <span className="empty-icon">文</span>
+                <strong>导入第一本小说</strong>
+                <small>支持 UTF-8、GBK、GB18030 编码的 TXT 文件</small>
+              </button>
+            ) : (
+              <div className="book-list">
+                {state.books.map((book) => {
+                  const progress = state.progress[book.id]
+                  return (
+                    <article className="book-card" key={book.id} onDoubleClick={() => openBook(book)}>
+                      <button className="book-main" onClick={() => openBook(book)}>
+                        <span className="book-mark">TXT</span>
+                        <span className="book-copy">
+                          <strong>{book.title}</strong>
+                          <small>{progress ? `上次读到第 ${progress.chapterIndex + 1} 章` : '尚未开始'} · {formatSize(book.size)}</small>
+                        </span>
+                      </button>
+                      <button className="delete" title="从书架移除" onClick={() => removeBook(book)}>移除</button>
+                    </article>
+                  )
+                })}
+              </div>
+            )}
+          </section>
+          <footer className="shelf-footer">
+            <span>墨隐阅读 v{appInfo?.version ?? '—'}</span>
+            <button title={appInfo?.repositoryUrl} onClick={() => void window.reader.openProjectPage().catch((error) => setNotice(error instanceof Error ? error.message : String(error)))}>
+              GitHub <span aria-hidden="true">↗</span>
+            </button>
+          </footer>
+        </>
       ) : (
         <section ref={readerShellRef} className={`reader-shell ${chromeVisible ? 'chrome-visible' : ''}`}>
           <div ref={fullToolbarMeasureRef} className="toolbar-measure toolbar-measure-full" aria-hidden="true">

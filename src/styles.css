@@ -12,6 +12,7 @@ button { color: inherit; }
 
 .app {
   --titlebar-height: clamp(42px, 11vh, 52px);
+  --shelf-footer-height: clamp(34px, 9vh, 44px);
   width: 100%; height: 100%; position: relative; overflow: hidden;
   background: #f5f2ea; border: 1px solid rgba(38, 50, 56, .16); border-radius: 14px;
   box-shadow: 0 22px 60px rgba(35, 42, 45, .22);
@@ -25,7 +26,7 @@ button { color: inherit; }
 .window-actions button { padding: clamp(5px, 1.8vw, 8px) clamp(6px, 2.3vw, 10px); font-size: clamp(11px, 3vw, 14px); }
 .window-actions button:hover, .reader-toolbar button:hover, .reader-footer button:hover { background: rgba(38,50,56,.08); }
 
-.shelf { height: calc(100% - var(--titlebar-height)); padding: clamp(12px, 5vw, 30px); overflow: auto; container-type: inline-size; container-name: shelf; }
+.shelf { height: calc(100% - var(--titlebar-height) - var(--shelf-footer-height)); padding: clamp(12px, 5vw, 30px); overflow: auto; container-type: inline-size; container-name: shelf; }
 .shelf-heading { display: flex; align-items: end; justify-content: space-between; gap: clamp(8px, 3vw, 20px); margin-bottom: clamp(12px, 4vh, 26px); }
 h1, h2, p { margin-top: 0; }
 h1 { margin-bottom: 0; font-family: Georgia, "Songti SC", serif; font-size: clamp(23px, 8cqw, 34px); line-height: 1.1; }
@@ -47,6 +48,9 @@ h1 { margin-bottom: 0; font-family: Georgia, "Songti SC", serif; font-size: clam
 .book-copy small { overflow: hidden; color: #748085; font-size: clamp(8px, 2.8cqw, 12px); text-overflow: ellipsis; white-space: nowrap; }
 .delete { flex: none; margin-right: clamp(5px, 2.5cqw, 12px); padding: clamp(4px, 1.7cqw, 7px); border: 0; background: none; color: #9a7770; font-size: clamp(9px, 2.8cqw, 12px); cursor: pointer; opacity: 0; }
 .book-card:hover .delete { opacity: 1; }
+.shelf-footer { position: absolute; z-index: 20; left: 1px; right: 1px; bottom: 1px; height: var(--shelf-footer-height); padding: 0 clamp(12px, 5vw, 30px); display: flex; align-items: center; justify-content: space-between; gap: 10px; overflow: hidden; border-top: 1px solid rgba(38,50,56,.1); border-radius: 0 0 12px 12px; background: #f5f2ea; color: #7d888c; font-size: clamp(9px, 3vw, 12px); white-space: nowrap; }
+.shelf-footer button { min-width: 0; padding: clamp(4px, 1.4vh, 7px) clamp(6px, 2.2vw, 10px); border: 0; border-radius: 6px; background: transparent; color: #52676e; font-weight: 700; cursor: pointer; }
+.shelf-footer button:hover { background: rgba(38,50,56,.08); }
 
 .reader-shell { --top-control-space: clamp(58px, 11cqh, 72px); --bottom-control-space: clamp(52px, 10cqh, 64px); width: 100%; height: calc(100% - 52px); position: relative; container-type: size; container-name: reader; }
 .is-reading .reader-shell { height: 100%; }

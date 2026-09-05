@@ -2,6 +2,8 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { ReaderApi, ReaderSettings, ReadingProgress } from '../../shared/types'
 
 const api: ReaderApi = {
+  getAppInfo: () => ipcRenderer.invoke('app:info'),
+  openProjectPage: () => ipcRenderer.invoke('app:open-project'),
   getState: () => ipcRenderer.invoke('state:get'),
   importBooks: () => ipcRenderer.invoke('books:import'),
   openBook: (bookId) => ipcRenderer.invoke('books:open', bookId),

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, screen, Tray } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, screen, shell, Tray } from 'electron'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
@@ -12,6 +12,7 @@ const legacyUserDataDirectory = app.getPath('userData')
 const dedicatedUserDataDirectory = path.join(app.getPath('appData'), '墨隐阅读')
 const maximumBookBytes = 30 * 1024 * 1024
 const maximumStoredBookBytes = 60 * 1024 * 1024
+const projectUrl = 'https://github.com/zzf-yj/Moying-Novels'
 app.setName('墨隐阅读')
 app.setPath('userData', dedicatedUserDataDirectory)
 
@@ -181,6 +182,8 @@ function createWindow(): void {
 }
 
 function registerIpc(): void {
+  ipcMain.handle('app:info', () => ({ version: app.getVersion(), repositoryUrl: projectUrl }))
+  ipcMain.handle('app:open-project', () => shell.openExternal(projectUrl))
   ipcMain.handle('state:get', () => store.snapshot())
 
   ipcMain.handle('books:import', async (): Promise<BookMeta[]> => {
