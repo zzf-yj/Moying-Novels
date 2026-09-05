@@ -11,5 +11,6 @@ export const defaultSettings: ReaderSettings = {
   alwaysOnTop: true,
   hideFromTaskbar: false,
   autoScrollSpeed: 24,
+  bossKey: 'CommandOrControl+Alt+B',
   windowBounds: { width: 440, height: 640 }
 }

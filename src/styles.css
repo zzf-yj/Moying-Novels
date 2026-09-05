@@ -156,6 +156,7 @@ h1 { margin-bottom: 0; font-family: Georgia, "Songti SC", serif; font-size: clam
 .chapter-list small { color: #899398; }
 .settings-drawer > label { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: clamp(5px, 1.8vw, 10px); margin: clamp(10px, 2.5vh, 18px) 0; font-size: inherit; font-weight: 650; }
 .settings-drawer label input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: #42565c; }
+.settings-drawer select { grid-column: 1 / -1; width: 100%; padding: clamp(6px, 1.7vw, 9px) clamp(6px, 1.5vw, 8px); border: 1px solid rgba(38,50,56,.16); border-radius: clamp(6px, 1.5vw, 8px); background: #fff; font: inherit; cursor: pointer; }
 .settings-drawer output { color: #7d888c; font-weight: 500; }
 .color-row { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(6px, 2vw, 13px); }
 .color-row label { display: flex; align-items: center; justify-content: space-between; gap: 5px; padding: clamp(6px, 1.8vw, 10px); border: 1px solid rgba(38,50,56,.1); border-radius: clamp(6px, 1.7vw, 9px); font-size: inherit; }

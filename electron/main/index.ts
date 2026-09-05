@@ -1,4 +1,4 @@
-import { app, autoUpdater as nativeUpdater, BrowserWindow, dialog, ipcMain, Menu, nativeImage, screen, shell, Tray } from 'electron'
+import { app, autoUpdater as nativeUpdater, BrowserWindow, dialog, globalShortcut, ipcMain, Menu, nativeImage, screen, shell, Tray } from 'electron'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
@@ -36,6 +36,19 @@ function applyTaskbarVisibility(): void {
   if (process.platform === 'darwin') {
     if (hidden) app.dock?.hide()
     else app.dock?.show()
+  }
+}
+
+// The boss key must feel instant: exit straight away without the quit flush. Reading progress
+// is saved continuously while scrolling, so at most the last instants of position are lost.
+function applyBossKey(): void {
+  globalShortcut.unregisterAll()
+  const accelerator = store.snapshot().settings.bossKey
+  if (!accelerator) return
+  try {
+    globalShortcut.register(accelerator, () => app.exit(0))
+  } catch (error) {
+    console.error('[boss-key-register-failed]', error)
   }
 }
 
@@ -272,6 +285,7 @@ function registerIpc(): void {
     await store.saveSettings(settings)
     mainWindow?.setAlwaysOnTop(settings.alwaysOnTop)
     applyTaskbarVisibility()
+    applyBossKey()
   })
 
   ipcMain.handle('window:stealth', (_event, enabled: boolean) => {
@@ -317,6 +331,7 @@ if (!hasSingleInstanceLock) {
     .then(async () => {
       await migrateLegacyData()
       await store.initialize()
+      applyBossKey()
       registerIpc()
       createWindow()
       createTray()
@@ -357,6 +372,10 @@ app.on('before-quit', (event) => {
     .then(() => store.flush())
     .catch((error) => console.error('[state-flush-failed]', error))
     .finally(() => app.quit())
+})
+
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll()
 })
 
 app.on('window-all-closed', () => {

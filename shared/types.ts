@@ -36,8 +36,17 @@ export interface ReaderSettings {
   alwaysOnTop: boolean
   hideFromTaskbar: boolean
   autoScrollSpeed: number
+  bossKey: string
   windowBounds: WindowBounds
 }
+
+// Empty value disables the key; Electron accelerator strings otherwise.
+export const bossKeyChoices = [
+  { value: 'CommandOrControl+Alt+B', label: 'Ctrl + Alt + B' },
+  { value: 'CommandOrControl+Alt+Q', label: 'Ctrl + Alt + Q' },
+  { value: 'F9', label: 'F9' },
+  { value: '', label: '关闭' }
+] as const
 
 export interface PersistedState {
   books: BookMeta[]

@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import { UpdatePanel } from './UpdatePanel'
 import { atChapterEnd, endScreenReadingTime, readingChapterAt } from './chapter-navigation'
 import { useWindowDrag } from './use-window-drag'
+import { bossKeyChoices } from '../shared/types'
 import type { AppInfo, BookMeta, OpenedBook, PersistedState, ReaderSettings, ReadingProgress, WindowBounds } from '../shared/types'
 
 const formatSize = (size: number): string => size < 1024 * 1024
@@ -539,7 +540,13 @@ function App(): React.JSX.Element {
             <div className="color-row"><label>背景色<input type="color" value={state.settings.backgroundColor} onChange={(event) => updateSettings({ backgroundColor: event.target.value })} /></label><label>文字色<input type="color" value={state.settings.textColor} onChange={(event) => updateSettings({ textColor: event.target.value })} /></label></div>
             <label className="check"><input type="checkbox" checked={state.settings.alwaysOnTop} onChange={(event) => { updateSettings({ alwaysOnTop: event.target.checked }); void window.reader.setAlwaysOnTop(event.target.checked) }} />窗口始终置顶</label>
             <label className="check"><input type="checkbox" checked={state.settings.hideFromTaskbar} onChange={(event) => updateSettings({ hideFromTaskbar: event.target.checked })} />在任务栏中隐藏</label>
+            <label>老板键 <output>{bossKeyChoices.find((choice) => choice.value === state.settings.bossKey)?.label ?? '自定义'}</output>
+              <select value={state.settings.bossKey} onChange={(event) => updateSettings({ bossKey: event.target.value })}>
+                {bossKeyChoices.map((choice) => <option key={choice.value || 'off'} value={choice.value}>{choice.label}</option>)}
+              </select>
+            </label>
             <p className="settings-note">隐藏后仍可通过系统托盘恢复窗口；在 macOS 上对应隐藏 Dock 图标。</p>
+            <p className="settings-note">老板键是全局快捷键：任何界面按下都会立即退出进程、窗口瞬间消失，不保存最后位置。macOS 上 CommandOrControl 对应 ⌘。</p>
             <p className="settings-note">摸鱼模式不会跨启动自动开启，避免重新打开后找不到窗口。</p>
             <button className="primary save" onClick={saveSettings}>保存设置</button>
           </aside>

@@ -1,4 +1,5 @@
 import type { BookMeta, PersistedState, ReaderSettings, ReadingProgress, WindowBounds } from '../../shared/types'
+import { bossKeyChoices } from '../../shared/types'
 
 const isRecord = (value: unknown): value is Record<string, unknown> => (
   typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -68,6 +69,9 @@ export function normalizePersistedState(value: unknown, defaults: ReaderSettings
     alwaysOnTop: typeof settingsInput.alwaysOnTop === 'boolean' ? settingsInput.alwaysOnTop : defaults.alwaysOnTop,
     hideFromTaskbar: typeof settingsInput.hideFromTaskbar === 'boolean' ? settingsInput.hideFromTaskbar : defaults.hideFromTaskbar,
     autoScrollSpeed: clampedNumber(settingsInput.autoScrollSpeed, defaults.autoScrollSpeed, 10, 120),
+    bossKey: typeof settingsInput.bossKey === 'string' && bossKeyChoices.some((choice) => choice.value === settingsInput.bossKey)
+      ? settingsInput.bossKey
+      : defaults.bossKey,
     windowBounds: normalizeBounds(settingsInput.windowBounds, defaults.windowBounds)
   }
 
