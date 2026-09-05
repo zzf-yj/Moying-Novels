@@ -85,7 +85,7 @@ h1 { margin-bottom: 0; font-family: Georgia, "Songti SC", serif; font-size: clam
 .update-secondary:hover { background: rgba(38,50,56,.07); }
 .update-link { border: 0; background: transparent; padding: 8px 0; color: inherit; cursor: pointer; }
 
-.reader-shell { --top-control-space: clamp(58px, 11cqh, 72px); --bottom-control-space: clamp(52px, 10cqh, 64px); width: 100%; height: calc(100% - 52px); position: relative; container-type: size; container-name: reader; }
+.reader-shell { --top-control-space: clamp(58px, 11cqh, 72px); --bottom-control-space: clamp(52px, 10cqh, 64px); --edge-space: clamp(12px, 3cqh, 24px); width: 100%; height: calc(100% - 52px); position: relative; container-type: size; container-name: reader; background: color-mix(in srgb, var(--reader-bg) calc(var(--reader-bg-alpha) * 100%), transparent); }
 .is-reading .reader-shell { height: 100%; }
 .reader-toolbar { position: absolute; z-index: 24; top: clamp(7px, 2cqh, 14px); left: clamp(6px, 2.2cqw, 12px); right: clamp(6px, 2.2cqw, 12px); display: flex; flex-wrap: nowrap; align-items: center; gap: clamp(1px, .65cqw, 4px); padding: clamp(4px, 1.1cqh, 8px) clamp(4px, 1.4cqw, 9px); border: 1px solid rgba(38,50,56,.12); border-radius: clamp(7px, 2.4cqw, 11px); background: color-mix(in srgb, var(--reader-bg) 94%, transparent); box-shadow: 0 clamp(5px, 1.5cqh, 10px) clamp(14px, 5cqw, 28px) rgba(38,50,56,.15); backdrop-filter: blur(12px); font-size: clamp(9px, 2.65cqw, 13px); overflow: visible; }
 .reader-toolbar button { flex: 0 0 auto; min-width: max-content; padding: clamp(4px, 1.15cqh, 8px) clamp(4px, 1.8cqw, 10px); white-space: nowrap; line-height: 1.15; }
@@ -104,7 +104,7 @@ h1 { margin-bottom: 0; font-family: Georgia, "Songti SC", serif; font-size: clam
 .toolbar-more button:hover, .toolbar-more button.active { background: rgba(38,50,56,.09); }
 .reader-toolbar .active { background: rgba(138,110,82,.15); color: #7a5c40; }
 .reader-toolbar .stealth-button { background: #263238; color: white; }
-.reader { position: absolute; inset: 0; width: 100%; height: auto; overflow: auto; overflow-anchor: none; scrollbar-width: none; background: color-mix(in srgb, var(--reader-bg) calc(var(--reader-bg-alpha) * 100%), transparent); color: color-mix(in srgb, var(--reader-color) calc(var(--reader-text-alpha) * 100%), transparent); transition: top .16s ease, bottom .16s ease; }
+.reader { position: absolute; inset: var(--edge-space) 0; width: 100%; height: auto; overflow: auto; overflow-anchor: none; scrollbar-width: none; color: color-mix(in srgb, var(--reader-color) calc(var(--reader-text-alpha) * 100%), transparent); transition: top .16s ease, bottom .16s ease; }
 .chrome-visible .reader { top: var(--top-control-space); bottom: var(--bottom-control-space); }
 .reader::-webkit-scrollbar { display: none; }
 .reader, .reader-toolbar { user-select: none; -webkit-user-select: none; cursor: grab; }
