@@ -154,7 +154,6 @@ h1 { margin-bottom: 0; font-family: Georgia, "Songti SC", serif; font-size: clam
 .donate-qr { margin: 0; display: grid; justify-items: center; gap: clamp(5px, 1.4vh, 8px); }
 .donate-qr-frame { width: clamp(132px, 44vw, 208px); aspect-ratio: 1; padding: clamp(8px, 2.6vw, 12px); border: 1px solid rgba(38,50,56,.12); border-radius: clamp(10px, 3vw, 14px); background: #fff; display: grid; place-items: center; overflow: hidden; }
 .donate-qr-frame img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.donate-qr-pending { width: 55%; aspect-ratio: 1; border-radius: 50%; border: 2px dashed rgba(38,50,56,.25); }
 .donate-qr figcaption { font-size: clamp(10px, 3vw, 12px); font-weight: 700; letter-spacing: .06em; color: #52676e; }
 .donate-entry { color: #9a6a5a; }
 .donate-entry:hover { background: rgba(154,106,90,.12); }
