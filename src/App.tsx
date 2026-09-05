@@ -420,7 +420,7 @@ function App(): React.JSX.Element {
           <div className="window-actions">
             <button title="设置" onClick={() => setSettingsOpen(true)}>设置</button>
             <button title="最小化" onClick={window.reader.minimize}>—</button>
-            <button title="隐藏到托盘" onClick={window.reader.close}>×</button>
+            <button title="退出应用" onClick={window.reader.close}>×</button>
           </div>
         </header>
       )}
@@ -486,7 +486,7 @@ function App(): React.JSX.Element {
                 {compactToolbar ? (stealth ? '退出' : '摸鱼') : (stealth ? '退出摸鱼' : '开启摸鱼')}
               </button>
               {!narrowToolbar && <button title="最小化" onClick={window.reader.minimize}>—</button>}
-              {!narrowToolbar && <button title="隐藏到托盘" onClick={window.reader.close}>×</button>}
+              {!narrowToolbar && <button title="退出应用" onClick={window.reader.close}>×</button>}
               {narrowToolbar && <button className="more-button" title="更多操作" onClick={() => setMoreOpen((value) => !value)}>•••</button>}
             </div>
           )}
@@ -495,7 +495,7 @@ function App(): React.JSX.Element {
             <div className="toolbar-more" onClick={(event) => event.stopPropagation()}>
               <button className={autoScroll ? 'active' : ''} onClick={() => { setAutoScroll((value) => !value); setMoreOpen(false) }}>{autoScroll ? '暂停滚动' : '自动滚动'}</button>
               <button onClick={() => { window.reader.minimize(); setMoreOpen(false) }}>最小化</button>
-              <button onClick={() => { window.reader.close(); setMoreOpen(false) }}>隐藏到托盘</button>
+              <button onClick={() => { window.reader.close(); setMoreOpen(false) }}>退出应用</button>
             </div>
           )}
 

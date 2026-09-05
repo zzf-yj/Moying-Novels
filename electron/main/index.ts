@@ -173,9 +173,11 @@ function createWindow(): void {
     console.error('[renderer-load-failed]', { code, description, url })
   })
   mainWindow.on('close', (event) => {
+    // The X button and Alt+F4 quit the app; only the tray icon toggles visibility.
     if (!quitting) {
       event.preventDefault()
-      stealth.hideToTray()
+      quitting = true
+      app.quit()
     }
   })
   mainWindow.on('blur', () => windowDrag.stop())
@@ -312,7 +314,10 @@ function registerIpc(): void {
   ipcMain.on('window:interaction', (_event, active: boolean) => stealth.setInteractionActive(active || windowDrag.isActive()))
   ipcMain.on('window:pointer-left', () => stealth.pointerLeft())
   ipcMain.on('window:minimize', () => mainWindow?.minimize())
-  ipcMain.on('window:close', () => stealth.hideToTray())
+  ipcMain.on('window:close', () => {
+    quitting = true
+    app.quit()
+  })
 }
 
 const hasSingleInstanceLock = app.requestSingleInstanceLock()
