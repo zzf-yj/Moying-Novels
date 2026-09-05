@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { UpdatePanel } from './UpdatePanel'
 import type { AppInfo, BookMeta, OpenedBook, PersistedState, ReaderSettings, ReadingProgress, WindowBounds } from '../shared/types'
 
 const formatSize = (size: number): string => size < 1024 * 1024
@@ -69,6 +70,7 @@ function ResizeHandles(): React.JSX.Element {
 function App(): React.JSX.Element {
   const [state, setState] = useState<PersistedState | null>(null)
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null)
+  const [updatesOpen, setUpdatesOpen] = useState(false)
   const [opened, setOpened] = useState<OpenedBook | null>(null)
   const [chapterIndex, setChapterIndex] = useState(0)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -84,6 +86,7 @@ function App(): React.JSX.Element {
   const fullToolbarMeasureRef = useRef<HTMLDivElement>(null)
   const compactToolbarMeasureRef = useRef<HTMLDivElement>(null)
   const saveTimer = useRef<number | undefined>(undefined)
+  const pendingProgress = useRef<{ bookId: string; progress: ReadingProgress } | null>(null)
   const lastProgressSaveAt = useRef(0)
   const openRequest = useRef(0)
 
@@ -267,6 +270,7 @@ function App(): React.JSX.Element {
     if (!opened || !readerRef.current || !state) return
     window.clearTimeout(saveTimer.current)
     const scrollTop = readerRef.current.scrollTop
+    pendingProgress.current = { bookId: opened.book.id, progress: { chapterIndex, scrollTop, updatedAt: Date.now() } }
     const elapsed = Date.now() - lastProgressSaveAt.current
     const delay = autoScroll ? Math.max(0, 1000 - elapsed) : 250
     saveTimer.current = window.setTimeout(() => {
@@ -355,7 +359,8 @@ function App(): React.JSX.Element {
             )}
           </section>
           <footer className="shelf-footer">
-            <span>墨隐阅读 v{appInfo?.version ?? '—'}</span>
+            <span>v{appInfo?.version ?? '—'}</span>
+            <button onClick={() => setUpdatesOpen(true)}>检查更新</button>
             <button title={appInfo?.repositoryUrl} onClick={() => void window.reader.openProjectPage().catch((error) => setNotice(error instanceof Error ? error.message : String(error)))}>
               GitHub <span aria-hidden="true">↗</span>
             </button>
@@ -443,6 +448,11 @@ function App(): React.JSX.Element {
         </div>
       )}
 
+      {updatesOpen && !opened && <UpdatePanel currentVersion={appInfo?.version ?? '—'} close={() => setUpdatesOpen(false)} beforeInstall={async () => {
+        window.clearTimeout(saveTimer.current)
+        const pending = pendingProgress.current
+        if (pending) await window.reader.saveProgress(pending.bookId, pending.progress)
+      }} />}
       {notice && <button className="toast" onClick={() => setNotice('')}>{notice}</button>}
       <ResizeHandles />
     </main>

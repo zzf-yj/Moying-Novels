@@ -1,6 +1,6 @@
 {
   "name": "inkfish-reader",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "A private, cross-platform desktop TXT reader with a mouse-away stealth mode.",
   "main": "out/main/index.js",
@@ -16,6 +16,7 @@
     "dist:local": "npm run build && electron-builder --config.electronDist=node_modules/electron/dist"
   },
   "dependencies": {
+    "electron-updater": "^6.8.9",
     "iconv-lite": "^0.6.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
@@ -33,6 +34,7 @@
     "vitest": "^3.2.7"
   },
   "build": {
+    "publish": { "provider": "github", "owner": "zzf-yj", "repo": "Moying-Novels", "releaseType": "release" },
     "appId": "cn.inkfish.reader",
     "productName": "墨隐阅读",
     "asar": true,
@@ -69,12 +71,6 @@
           "arch": [
             "x64"
           ]
-        },
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
         }
       ]
     },
@@ -83,9 +79,6 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true
-    },
-    "portable": {
-      "artifactName": "${productName}-${version}-${arch}-Portable.${ext}"
     }
   },
   "allowScripts": {

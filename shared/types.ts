@@ -56,6 +56,12 @@ export interface AppInfo {
 }
 
 export interface ReaderApi {
+  getUpdateState: () => Promise<UpdateState>
+  checkUpdate: () => Promise<UpdateState>
+  downloadUpdate: () => Promise<void>
+  installUpdate: () => Promise<void>
+  openReleases: () => Promise<void>
+  onUpdateState: (callback: (state: UpdateState) => void) => () => void
   getAppInfo: () => Promise<AppInfo>
   openProjectPage: () => Promise<void>
   getState: () => Promise<PersistedState>
@@ -73,4 +79,13 @@ export interface ReaderApi {
   minimize: () => void
   close: () => void
   onStealthVisibility: (callback: (visible: boolean) => void) => () => void
+}
+
+export interface UpdateState {
+  status: 'idle' | 'checking' | 'available' | 'current' | 'downloading' | 'downloaded' | 'installing' | 'error' | 'development'
+  automatic: boolean
+  version?: string
+  notes?: string
+  percent?: number
+  message?: string
 }

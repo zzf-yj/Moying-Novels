@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, screen, shell, Tray } from 'electron'
+import { app, autoUpdater as nativeUpdater, BrowserWindow, dialog, ipcMain, Menu, nativeImage, screen, shell, Tray } from 'electron'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
@@ -6,6 +6,7 @@ import iconv from 'iconv-lite'
 import { AppStore } from './store'
 import { parseChapters } from './chapter-parser'
 import { StealthController } from './stealth-controller'
+import { UpdateController, releasesUrl } from './update-controller'
 import type { BookMeta, ReaderSettings, ReadingProgress, WindowBounds } from '../../shared/types'
 
 const legacyUserDataDirectory = app.getPath('userData')
@@ -182,6 +183,18 @@ function createWindow(): void {
 }
 
 function registerIpc(): void {
+  const updates = new UpdateController(app.isPackaged, process.platform, app.getVersion(), (state) => {
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update:state', state)
+  })
+  ipcMain.handle('update:state', () => updates.snapshot())
+  ipcMain.handle('update:check', () => updates.check())
+  ipcMain.handle('update:download', () => updates.download())
+  ipcMain.handle('update:releases', () => shell.openExternal(releasesUrl))
+  ipcMain.handle('update:install', () => updates.install(async () => {
+    clearTimeout(boundsTimer)
+    if (mainWindow && !mainWindow.isDestroyed()) await store.saveBounds(mainWindow.getNormalBounds())
+    await store.flush()
+  }))
   ipcMain.handle('app:info', () => ({ version: app.getVersion(), repositoryUrl: projectUrl }))
   ipcMain.handle('app:open-project', () => shell.openExternal(projectUrl))
   ipcMain.handle('state:get', () => store.snapshot())
@@ -306,6 +319,13 @@ app.on('activate', () => {
     stealth.reveal()
     mainWindow.show()
   }
+})
+
+nativeUpdater.on('before-quit-for-update', () => {
+  // Set only after the installer starts successfully. Failed installs leave normal quitting intact.
+  quitting = true
+  flushingBeforeQuit = true
+  stealth.destroy()
 })
 
 app.on('before-quit', (event) => {

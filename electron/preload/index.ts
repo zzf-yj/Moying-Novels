@@ -2,6 +2,16 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { ReaderApi, ReaderSettings, ReadingProgress } from '../../shared/types'
 
 const api: ReaderApi = {
+  getUpdateState: () => ipcRenderer.invoke('update:state'),
+  checkUpdate: () => ipcRenderer.invoke('update:check'),
+  downloadUpdate: () => ipcRenderer.invoke('update:download'),
+  installUpdate: () => ipcRenderer.invoke('update:install'),
+  openReleases: () => ipcRenderer.invoke('update:releases'),
+  onUpdateState: (callback) => {
+    const listener = (_event: Electron.IpcRendererEvent, state: import('../../shared/types').UpdateState): void => callback(state)
+    ipcRenderer.on('update:state', listener)
+    return () => ipcRenderer.removeListener('update:state', listener)
+  },
   getAppInfo: () => ipcRenderer.invoke('app:info'),
   openProjectPage: () => ipcRenderer.invoke('app:open-project'),
   getState: () => ipcRenderer.invoke('state:get'),
