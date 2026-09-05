@@ -1,5 +1,6 @@
 import { autoUpdater } from 'electron-updater'
 import type { UpdateState } from '../../shared/types'
+import { plainReleaseNotes } from '../../shared/release-notes.cjs'
 
 export const releasesUrl = 'https://github.com/zzf-yj/Moying-Novels/releases/latest'
 const latestApi = 'https://api.github.com/repos/zzf-yj/Moying-Novels/releases/latest'
@@ -47,7 +48,7 @@ export class UpdateController {
     autoUpdater.allowPrerelease = false
     autoUpdater.allowDowngrade = false
     autoUpdater.on('error', (error) => this.fail(error))
-    autoUpdater.on('update-available', (info) => this.set({ status: 'available', version: info.version, notes: typeof info.releaseNotes === 'string' ? info.releaseNotes : info.releaseNotes?.map(note => note.note).join('\n') }))
+    autoUpdater.on('update-available', (info) => this.set({ status: 'available', version: info.version, notes: plainReleaseNotes(typeof info.releaseNotes === 'string' ? info.releaseNotes : info.releaseNotes?.map(note => note.note).join('\n')) }))
     autoUpdater.on('update-not-available', () => this.set({ status: 'current', message: currentMessage }))
     autoUpdater.on('download-progress', (progress) => this.set({ ...this.state, status: 'downloading', percent: Math.min(100, Math.max(0, Math.round(progress.percent))) }))
     autoUpdater.on('update-downloaded', () => this.set({ ...this.state, status: 'downloaded', percent: 100 }))
@@ -89,7 +90,7 @@ export class UpdateController {
           this.set({ status: 'current', message: '暂未发布正式版本。' })
         } else {
           this.set(newerStableVersion(release.tag_name, this.currentVersion)
-            ? { status: 'available', version: release.tag_name.replace(/^v/, ''), notes: typeof release.body === 'string' ? release.body : '' }
+            ? { status: 'available', version: release.tag_name.replace(/^v/, ''), notes: plainReleaseNotes(release.body) }
             : { status: 'current', message: currentMessage })
         }
       }

@@ -24,7 +24,6 @@ export function UpdatePanel({ currentVersion, close, beforeInstall }: { currentV
       <p role="status" aria-live="polite">{labels[state.status]}</p>
       {state.message && state.status !== 'current' && <p className="settings-note">{state.message}</p>}
       {state.status === 'downloading' && <progress aria-label="更新下载进度" max={100} value={state.percent ?? 0} />}
-      {state.notes && <div className="update-notes">{state.notes}</div>}
       {error && <p role="alert">{error}</p>}
       <div className="update-actions">
         {state.status === 'available' && <button className="primary" onClick={() => run(state.automatic ? window.reader.downloadUpdate : window.reader.openReleases)}>{state.automatic ? '下载更新' : '前往下载新版'}</button>}
@@ -32,6 +31,10 @@ export function UpdatePanel({ currentVersion, close, beforeInstall }: { currentV
         {!busy && state.status !== 'downloaded' && <button className="primary" onClick={() => run(window.reader.checkUpdate)}>检查更新</button>}
         <button className="update-link" onClick={() => run(window.reader.openReleases)}>GitHub 发布页 ↗</button>
       </div>
+      {state.notes && <details className="update-notes" open>
+        <summary>更新说明</summary>
+        <div className="update-notes-body">{state.notes}</div>
+      </details>}
       <p className="settings-note">Windows 安装版支持下载后重启更新；macOS 当前需下载新版并替换应用。关闭本面板不会中断下载。</p>
     </aside>
   </div>

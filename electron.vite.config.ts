@@ -6,6 +6,7 @@ export default defineConfig({
   main: {
     plugins: [externalizeDepsPlugin()],
     build: {
+      commonjsOptions: { include: [/node_modules/, /shared[/\\]release-notes\.cjs$/] },
       lib: { entry: resolve(__dirname, 'electron/main/index.ts') }
     }
   },

@@ -53,7 +53,9 @@ h1 { margin-bottom: 0; font-family: Georgia, "Songti SC", serif; font-size: clam
 .shelf-footer button:hover { background: rgba(38,50,56,.08); }
 .update-drawer { max-width: 100%; }
 .update-drawer progress { width: 100%; accent-color: #42565c; }
-.update-notes { margin-block: 12px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; }
+.update-notes { min-width: 0; margin-block: clamp(6px, 2vh, 12px); font-size: clamp(11px, 3vw, 14px); line-height: 1.6; }
+.update-notes summary { cursor: pointer; font-weight: 600; }
+.update-notes-body { max-height: clamp(72px, 38vh, 320px); margin-top: 6px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; scrollbar-width: thin; }
 .update-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .update-link { border: 0; background: transparent; padding: 8px 0; color: inherit; cursor: pointer; }
 

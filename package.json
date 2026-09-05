@@ -17,11 +17,14 @@
   },
   "dependencies": {
     "electron-updater": "^6.8.9",
+    "html-to-text": "^10.0.1",
     "iconv-lite": "^0.6.3",
+    "marked": "^18.0.11",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
   "devDependencies": {
+    "@types/html-to-text": "^9.0.4",
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
@@ -34,7 +37,13 @@
     "vitest": "^3.2.7"
   },
   "build": {
-    "publish": { "provider": "github", "owner": "zzf-yj", "repo": "Moying-Novels", "releaseType": "release" },
+    "beforePack": "scripts/prepare-release-notes.cjs",
+    "publish": {
+      "provider": "github",
+      "owner": "zzf-yj",
+      "repo": "Moying-Novels",
+      "releaseType": "release"
+    },
     "appId": "cn.inkfish.reader",
     "productName": "墨隐阅读",
     "asar": true,

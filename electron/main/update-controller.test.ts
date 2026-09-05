@@ -19,6 +19,18 @@ beforeEach(() => {
 })
 
 describe('update controller', () => {
+  it('normalizes Windows HTML notes before sending them to the renderer', () => {
+    const controller = new UpdateController(true, 'win32', '0.2.1', vi.fn())
+    emit('update-available', { version: '0.2.2', releaseNotes: '<h2>更新内容</h2><ul><li>正文拖动</li></ul>' })
+    expect(controller.snapshot().notes).toBe('更新内容\n\n• 正文拖动')
+    emit('update-available', { version: '0.2.2', releaseNotes: [{ note: '<p>第一项</p>' }, { note: '<p>第二项</p>' }] })
+    expect(controller.snapshot().notes).toBe('第一项\n\n第二项')
+  })
+  it('normalizes macOS Markdown notes without exposing formatting markers', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ tag_name: 'v0.2.2', body: '## 更新内容\n\n- **正文拖动**' }) }))
+    const controller = new UpdateController(true, 'darwin', '0.2.1', vi.fn())
+    expect((await controller.check()).notes).toBe('更新内容\n\n• 正文拖动')
+  })
   it('reports current Windows version without requiring download metadata', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ tag_name: 'v0.2.1' }) }))
     const controller = new UpdateController(true, 'win32', '0.2.1', vi.fn())

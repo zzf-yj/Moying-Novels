@@ -53,6 +53,8 @@ git push origin v0.2.1
 
 ## 更新文件与发布验收
 
+每次发布需提供 `docs/releases/v版本号.md`。打包前会将该文件的 HTML/Markdown 格式转换为纯文本，写入 `latest*.yml` 的 `releaseNotes` 字段；GitHub 网页继续使用 Markdown 排版，旧客户端则读取纯文本，避免直接显示 HTML 标签。更新说明文件缺失或为空会阻止打包。已经发布的历史安装包不会因为修改源码而自动修复显示问题，不要为此覆盖已发布安装包或校验信息。
+
 安装包从 0.2.1 起统一使用 ASCII 前缀 `moying-novels`（例如 `moying-novels-0.2.1-arm64.dmg`、`moying-novels-0.2.1-x64-Setup.exe`），避免 GitHub 过滤中文附件名后与更新元数据不一致。不要在生成后手动重命名；应修改打包配置后重新构建，保持 `latest*.yml` 中的文件名一致。应用显示名称仍为“墨隐阅读”。
 
 - Windows 自动更新依赖同一 Release 中的 `latest.yml` 和它引用的安装文件；`.blockmap` 用于差分下载。不要手改这些文件，也不要只上传 EXE。
