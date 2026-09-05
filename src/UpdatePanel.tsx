@@ -14,7 +14,7 @@ export function UpdatePanel({ currentVersion, close, beforeInstall }: { currentV
   }, [])
   const busy = ['checking', 'downloading', 'installing'].includes(state.status)
   const labels: Record<UpdateState['status'], string> = {
-    idle: '检查是否有新版本', checking: '正在检查更新…', current: '当前已是最新版本', available: `发现新版本 ${state.version ?? ''}`,
+    idle: '检查是否有新版本', checking: '正在检查更新…', current: state.message ?? '当前已是最新版本，无需更新。', available: `发现新版本 ${state.version ?? ''}`,
     downloading: `正在下载 ${state.percent ?? 0}%`, downloaded: '下载完成，可重启安装', installing: '正在准备重启…', error: '更新失败', development: '开发模式'
   }
   return <div className="overlay" onClick={close}>
@@ -22,7 +22,7 @@ export function UpdatePanel({ currentVersion, close, beforeInstall }: { currentV
       <div className="drawer-title"><h2 id="update-title">版本更新</h2><button aria-label="关闭更新面板" onClick={close}>×</button></div>
       <p>当前版本 v{currentVersion}</p>
       <p role="status" aria-live="polite">{labels[state.status]}</p>
-      {state.message && <p className="settings-note">{state.message}</p>}
+      {state.message && state.status !== 'current' && <p className="settings-note">{state.message}</p>}
       {state.status === 'downloading' && <progress aria-label="更新下载进度" max={100} value={state.percent ?? 0} />}
       {state.notes && <div className="update-notes">{state.notes}</div>}
       {error && <p role="alert">{error}</p>}

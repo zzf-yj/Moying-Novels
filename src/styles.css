@@ -19,8 +19,6 @@ button { color: inherit; }
 .app::after { content: ''; position: absolute; z-index: 200; inset: 0; border: 1px solid rgba(38, 50, 56, .16); border-radius: inherit; pointer-events: none; }
 .app.is-shelf { display: grid; grid-template-rows: var(--titlebar-height) minmax(0, 1fr) var(--shelf-footer-height); }
 .app.is-shelf.is-stealth { grid-template-rows: minmax(0, 1fr) var(--shelf-footer-height); }
-.window-drag { display: none; }
-.is-reading .window-drag { display: block; position: absolute; z-index: 30; top: 0; left: 12px; right: 12px; height: 12px; -webkit-app-region: drag; cursor: move; }
 .titlebar { height: var(--titlebar-height); padding: 0 clamp(5px, 2vw, 10px) 0 clamp(10px, 4vw, 20px); display: flex; align-items: center; justify-content: space-between; gap: clamp(4px, 2vw, 12px); border-bottom: 1px solid rgba(38,50,56,.1); -webkit-app-region: drag; cursor: move; user-select: none; }
 .brand { min-width: 0; overflow: hidden; border: 0; background: none; font-size: clamp(12px, 3.5vw, 15px); font-weight: 800; letter-spacing: clamp(.03em, .8vw, .08em); white-space: nowrap; text-overflow: ellipsis; cursor: pointer; -webkit-app-region: no-drag; }
 .window-actions { display: flex; -webkit-app-region: no-drag; }
@@ -81,6 +79,8 @@ h1 { margin-bottom: 0; font-family: Georgia, "Songti SC", serif; font-size: clam
 .reader { position: absolute; inset: 0; width: 100%; height: auto; overflow: auto; scrollbar-width: none; background: color-mix(in srgb, var(--reader-bg) calc(var(--reader-bg-alpha) * 100%), transparent); color: color-mix(in srgb, var(--reader-color) calc(var(--reader-text-alpha) * 100%), transparent); transition: top .16s ease, bottom .16s ease; }
 .chrome-visible .reader { top: var(--top-control-space); bottom: var(--bottom-control-space); }
 .reader::-webkit-scrollbar { display: none; }
+.reader, .reader-toolbar { user-select: none; -webkit-user-select: none; cursor: grab; }
+.reader-shell.is-dragging .reader, .reader-shell.is-dragging .reader-toolbar { cursor: grabbing; }
 .prose { width: 100%; max-width: none; margin: 0; padding: clamp(20px, 5vh, 36px) clamp(18px, 4vw, 64px) clamp(52px, 10vh, 76px); font-family: "Songti SC", "STSong", "SimSun", serif; font-size: var(--reader-font-size); line-height: var(--reader-line-height); letter-spacing: .025em; }
 .prose h2 { margin-bottom: 28px; font-size: 1.28em; line-height: 1.4; }
 .prose p { margin-bottom: var(--paragraph-space); white-space: pre-wrap; }
@@ -91,7 +91,6 @@ h1 { margin-bottom: 0; font-family: Georgia, "Songti SC", serif; font-size: clam
 
 .is-stealth { border: 0; border-radius: 0; box-shadow: none; background: transparent; }
 .is-stealth::after { display: none; }
-.is-stealth .window-drag { display: block; }
 .is-stealth .reader-shell { height: 100%; }
 .is-stealth .prose { padding: 14px 18px 44px; }
 .is-stealth .reader-toolbar,

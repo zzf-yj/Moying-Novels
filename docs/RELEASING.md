@@ -56,6 +56,7 @@ git push origin v0.2.1
 安装包从 0.2.1 起统一使用 ASCII 前缀 `moying-novels`（例如 `moying-novels-0.2.1-arm64.dmg`、`moying-novels-0.2.1-x64-Setup.exe`），避免 GitHub 过滤中文附件名后与更新元数据不一致。不要在生成后手动重命名；应修改打包配置后重新构建，保持 `latest*.yml` 中的文件名一致。应用显示名称仍为“墨隐阅读”。
 
 - Windows 自动更新依赖同一 Release 中的 `latest.yml` 和它引用的安装文件；`.blockmap` 用于差分下载。不要手改这些文件，也不要只上传 EXE。
+- 不要为了精简附件而删除 `latest*.yml` 或 `.blockmap`：它们是更新功能的必要/配套文件，不是给用户手动安装的多余安装包。缺失 `latest.yml` 会导致包括已安装最新版在内的旧版更新器检查失败。如误删，应从同一次成功 Actions 的原始产物补回缺失文件，保留安装包与元数据的对应关系，不重新打包覆盖已发布版本。
 - macOS 提供 `x64`（Intel）和 `arm64`（Apple Silicon）DMG/ZIP。两个架构在同一个任务中打包，避免更新元数据被不同任务相互覆盖。
 - 当前构建未配置开发者签名证书。Windows 可能显示未知发布者提示；macOS 从 0.2.1 使用 ad-hoc 签名，但仍可能被 Gatekeeper 拦截，不能将它当成已获 Apple 认证、公证的分发方案。配置 Apple Developer ID 签名、公证后，还需要接入并验证 macOS 自动安装。
 - 没有可用的正式 Release、无法访问 GitHub、下载失败时，应用会显示提示，允许重试或打开发布页。

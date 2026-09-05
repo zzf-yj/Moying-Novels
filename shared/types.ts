@@ -73,6 +73,9 @@ export interface ReaderApi {
   setStealthEnabled: (enabled: boolean) => Promise<void>
   setAlwaysOnTop: (enabled: boolean) => Promise<void>
   getWindowBounds: () => Promise<Required<WindowBounds>>
+  startWindowDrag: () => void
+  moveWindowDrag: () => void
+  endWindowDrag: () => void
   setWindowBounds: (bounds: Required<WindowBounds>) => void
   setWindowInteractionActive: (active: boolean) => void
   pointerLeftWindow: () => void

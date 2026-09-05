@@ -5,7 +5,7 @@ const updater = vi.hoisted(() => ({
   on: vi.fn(), checkForUpdates: vi.fn(), downloadUpdate: vi.fn(), quitAndInstall: vi.fn()
 }))
 vi.mock('electron-updater', () => ({ autoUpdater: updater }))
-import { newerStableVersion, UpdateController } from './update-controller'
+import { newerStableVersion, UpdateController, updateErrorMessage } from './update-controller'
 
 function emit(event: string, payload?: unknown): void {
   const registration = updater.on.mock.calls.find(([name]) => name === event)
@@ -13,9 +13,30 @@ function emit(event: string, payload?: unknown): void {
   registration[1](payload)
 }
 
-beforeEach(() => { vi.resetAllMocks(); vi.unstubAllGlobals() })
+beforeEach(() => {
+  vi.resetAllMocks(); vi.unstubAllGlobals()
+  vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('API unavailable')))
+})
 
 describe('update controller', () => {
+  it('reports current Windows version without requiring download metadata', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ tag_name: 'v0.2.1' }) }))
+    const controller = new UpdateController(true, 'win32', '0.2.1', vi.fn())
+    expect(await controller.check()).toMatchObject({ status: 'current', message: '当前已是最新版本，无需更新。' })
+    expect(updater.checkForUpdates).not.toHaveBeenCalled()
+  })
+  it('does not call an older Windows installation current when metadata is missing', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ tag_name: 'v0.2.1' }) }))
+    const controller = new UpdateController(true, 'win32', '0.2.0', vi.fn())
+    updater.checkForUpdates.mockRejectedValue(Object.assign(new Error('missing'), { code: 'ERR_UPDATER_CHANNEL_FILE_NOT_FOUND' }))
+    expect(await controller.check()).toMatchObject({ status: 'error', message: expect.stringContaining('latest.yml') })
+  })
+  it('does not disguise ordinary network failures as already up to date', async () => {
+    const controller = new UpdateController(true, 'win32', '0.2.1', vi.fn())
+    updater.checkForUpdates.mockRejectedValue(new Error('offline'))
+    expect((await controller.check()).status).toBe('error')
+    expect(updateErrorMessage(new Error('offline'))).toContain('网络')
+  })
   it('compares stable versions numerically and rejects prereleases', () => {
     expect(newerStableVersion('v0.10.0', '0.2.0')).toBe(true)
     expect(newerStableVersion('v0.2.0', '0.2.0')).toBe(false)

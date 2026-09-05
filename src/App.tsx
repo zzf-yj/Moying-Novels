@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { UpdatePanel } from './UpdatePanel'
+import { atChapterEnd, ChapterAdvanceGate, endScreenReadingTime } from './chapter-navigation'
+import { useWindowDrag } from './use-window-drag'
 import type { AppInfo, BookMeta, OpenedBook, PersistedState, ReaderSettings, ReadingProgress, WindowBounds } from '../shared/types'
 
 const formatSize = (size: number): string => size < 1024 * 1024
@@ -89,6 +91,9 @@ function App(): React.JSX.Element {
   const pendingProgress = useRef<{ bookId: string; progress: ReadingProgress } | null>(null)
   const lastProgressSaveAt = useRef(0)
   const openRequest = useRef(0)
+  const chapterAdvance = useRef(new ChapterAdvanceGate())
+  const chapterScrollTarget = useRef<number | null>(null)
+  const windowDrag = useWindowDrag(opened?.book.id ?? null)
 
   useEffect(() => {
     window.reader.getState().then(setState).catch((error) => {
@@ -103,9 +108,39 @@ function App(): React.JSX.Element {
   const setChapter = useCallback((next: number): void => {
     if (!opened) return
     const bounded = Math.max(0, Math.min(next, opened.chapters.length - 1))
+    if (bounded === chapterIndex) {
+      readerRef.current?.scrollTo({ top: 0 })
+      return
+    }
+    chapterScrollTarget.current = 0
     setChapterIndex(bounded)
-    requestAnimationFrame(() => readerRef.current?.scrollTo({ top: 0 }))
-  }, [opened])
+  }, [opened, chapterIndex])
+
+  useLayoutEffect(() => {
+    if (readerRef.current && chapterScrollTarget.current !== null) {
+      readerRef.current.scrollTop = chapterScrollTarget.current
+      chapterScrollTarget.current = null
+    }
+  }, [opened, chapterIndex])
+
+  const advanceFromEnd = useCallback((): boolean => {
+    const element = readerRef.current
+    if (!opened || !element || settingsOpen || chaptersOpen || windowDrag.dragging) return false
+    if (!chapterAdvance.current.advance(element, chapterIndex, opened.chapters.length, performance.now())) return false
+    setChapter(chapterIndex + 1)
+    return true
+  }, [opened, chapterIndex, settingsOpen, chaptersOpen, setChapter, windowDrag.dragging])
+
+  useEffect(() => {
+    const element = readerRef.current
+    if (!element || !opened) return
+    const wheel = (event: WheelEvent): void => {
+      if (windowDrag.dragging) { event.preventDefault(); return }
+      if (!event.ctrlKey && event.deltaY > 0 && advanceFromEnd()) event.preventDefault()
+    }
+    element.addEventListener('wheel', wheel, { passive: false })
+    return () => element.removeEventListener('wheel', wheel)
+  }, [opened, advanceFromEnd, windowDrag.dragging])
 
   useLayoutEffect(() => {
     const element = readerShellRef.current
@@ -151,10 +186,11 @@ function App(): React.JSX.Element {
   useEffect(() => () => window.clearTimeout(saveTimer.current), [])
 
   useEffect(() => {
-    if (!autoScroll || !opened) return
+    if (!autoScroll || !opened || settingsOpen || chaptersOpen || windowDrag.dragging) return
     let frame = 0
     let previous = performance.now()
     let carriedPixels = 0
+    let endSince: number | null = null
     const tick = (now: number): void => {
       const element = readerRef.current
       if (element) {
@@ -165,13 +201,15 @@ function App(): React.JSX.Element {
           element.scrollTop += step
           carriedPixels -= step
         }
-        if (element.scrollTop + element.clientHeight >= element.scrollHeight - 2 && chapterIndex < opened.chapters.length - 1) {
-          setChapter(chapterIndex + 1)
-          return
-        }
-        if (element.scrollTop + element.clientHeight >= element.scrollHeight - 2 && chapterIndex === opened.chapters.length - 1) {
-          setAutoScroll(false)
-          return
+        if (atChapterEnd(element)) {
+          endSince ??= now
+          if (now - endSince >= endScreenReadingTime(element, state?.settings.autoScrollSpeed ?? 36)) {
+            if (chapterIndex < opened.chapters.length - 1) setChapter(chapterIndex + 1)
+            else setAutoScroll(false)
+            return
+          }
+        } else {
+          endSince = null
         }
       }
       previous = now
@@ -179,14 +217,15 @@ function App(): React.JSX.Element {
     }
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
-  }, [autoScroll, chapterIndex, opened, setChapter, state?.settings.autoScrollSpeed])
+  }, [autoScroll, chapterIndex, opened, setChapter, state?.settings.autoScrollSpeed, settingsOpen, chaptersOpen, windowDrag.dragging])
 
   useEffect(() => {
     const handler = (event: KeyboardEvent): void => {
-      if (!opened || !readerRef.current) return
+      if (!opened || !readerRef.current || settingsOpen || chaptersOpen || windowDrag.dragging) return
+      if (event.target instanceof HTMLElement && event.target.closest('input, textarea, select, [contenteditable="true"]')) return
       if (event.key === 'PageDown') {
         event.preventDefault()
-        readerRef.current.scrollBy({ top: readerRef.current.clientHeight * 0.84, behavior: 'smooth' })
+        if (!advanceFromEnd()) readerRef.current.scrollBy({ top: readerRef.current.clientHeight * 0.84, behavior: 'smooth' })
       } else if (event.key === 'PageUp') {
         event.preventDefault()
         readerRef.current.scrollBy({ top: -readerRef.current.clientHeight * 0.84, behavior: 'smooth' })
@@ -194,7 +233,7 @@ function App(): React.JSX.Element {
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [opened])
+  }, [opened, settingsOpen, chaptersOpen, advanceFromEnd, windowDrag.dragging])
 
   const openBook = async (book: BookMeta): Promise<void> => {
     const request = ++openRequest.current
@@ -202,13 +241,12 @@ function App(): React.JSX.Element {
       const result = await window.reader.openBook(book.id)
       if (request !== openRequest.current) return
       const progress = state?.progress[book.id]
+      chapterAdvance.current.reset()
+      chapterScrollTarget.current = progress?.scrollTop ?? 0
       setOpened(result)
       setAutoScroll(false)
       setChromeVisible(false)
       setChapterIndex(Math.min(progress?.chapterIndex ?? 0, result.chapters.length - 1))
-      requestAnimationFrame(() => {
-        if (readerRef.current) readerRef.current.scrollTop = progress?.scrollTop ?? 0
-      })
     } catch (error) {
       if (request !== openRequest.current) return
       setNotice(error instanceof Error ? error.message : String(error))
@@ -287,7 +325,7 @@ function App(): React.JSX.Element {
     if (opened) onScroll()
     // Saving on chapter changes is intentional; scroll events handle subsequent updates.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chapterIndex])
+  }, [chapterIndex, opened?.book.id])
 
   const chapter = opened?.chapters[chapterIndex]
   const paragraphs = useMemo(() => chapter?.content.split(/\n+/).map((item) => item.trim()).filter(Boolean) ?? [], [chapter?.content])
@@ -312,8 +350,6 @@ function App(): React.JSX.Element {
       style={style}
       onMouseLeave={() => stealth && window.reader.pointerLeftWindow()}
     >
-      <div className="window-drag" />
-
       {!stealth && !opened && (
         <header className="titlebar">
           <button className="brand" onClick={() => setOpened(null)}>墨隐阅读</button>
@@ -367,7 +403,7 @@ function App(): React.JSX.Element {
           </footer>
         </>
       ) : (
-        <section ref={readerShellRef} className={`reader-shell ${chromeVisible ? 'chrome-visible' : ''}`}>
+        <section ref={readerShellRef} className={`reader-shell ${chromeVisible ? 'chrome-visible' : ''} ${windowDrag.dragging ? 'is-dragging' : ''}`}>
           <div ref={fullToolbarMeasureRef} className="toolbar-measure toolbar-measure-full" aria-hidden="true">
             <button>‹ 书架</button><button>目录</button><button>设置</button><button>自动滚动</button><button>开启摸鱼</button><button>—</button><button>×</button>
           </div>
@@ -375,7 +411,7 @@ function App(): React.JSX.Element {
             <button>‹</button><button>目录</button><button>设置</button><button>滚动</button><button>摸鱼</button><button>—</button><button>×</button>
           </div>
           {chromeVisible && (
-            <div className={`reader-toolbar toolbar-${toolbarMode}`} onClick={(event) => event.stopPropagation()}>
+            <div className={`reader-toolbar toolbar-${toolbarMode}`} onPointerDown={windowDrag.onPointerDown} onClickCapture={windowDrag.onClickCapture} onClick={(event) => event.stopPropagation()}>
               <button onClick={() => setOpened(null)}>{compactToolbar ? '‹' : '‹ 书架'}</button>
               <button onClick={() => setChaptersOpen(true)}>目录</button>
               <button onClick={() => setSettingsOpen(true)}>设置</button>
@@ -398,7 +434,7 @@ function App(): React.JSX.Element {
             </div>
           )}
 
-          <div className="reader" ref={readerRef} onScroll={onScroll} onClick={() => setChromeVisible((visible) => !visible)}>
+          <div className="reader" ref={readerRef} onPointerDown={windowDrag.onPointerDown} onClickCapture={windowDrag.onClickCapture} onScroll={onScroll} onClick={() => setChromeVisible((visible) => !visible)}>
             <article className="prose">
               <h2>{chapter?.title}</h2>
               {paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}

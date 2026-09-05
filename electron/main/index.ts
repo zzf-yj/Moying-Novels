@@ -6,6 +6,7 @@ import iconv from 'iconv-lite'
 import { AppStore } from './store'
 import { parseChapters } from './chapter-parser'
 import { StealthController } from './stealth-controller'
+import { WindowDragController } from './window-drag-controller'
 import { UpdateController, releasesUrl } from './update-controller'
 import type { BookMeta, ReaderSettings, ReadingProgress, WindowBounds } from '../../shared/types'
 
@@ -24,6 +25,7 @@ let flushingBeforeQuit = false
 let boundsTimer: NodeJS.Timeout | undefined
 const store = new AppStore()
 const stealth = new StealthController(() => mainWindow)
+const windowDrag = new WindowDragController(() => mainWindow, active => stealth.setInteractionActive(active))
 
 function applyTaskbarVisibility(): void {
   const hidden = stealth.isEnabled() || store.snapshot().settings.hideFromTaskbar
@@ -160,7 +162,10 @@ function createWindow(): void {
       stealth.hideToTray()
     }
   })
-  mainWindow.on('closed', () => { mainWindow = null })
+  mainWindow.on('blur', () => windowDrag.stop())
+  mainWindow.on('hide', () => windowDrag.stop())
+  mainWindow.on('minimize', () => windowDrag.stop())
+  mainWindow.on('closed', () => { windowDrag.stop(); mainWindow = null })
   const saveBounds = (): void => {
     clearTimeout(boundsTimer)
     boundsTimer = setTimeout(() => {
@@ -171,9 +176,9 @@ function createWindow(): void {
   mainWindow.on('move', saveBounds)
   mainWindow.on('resize', saveBounds)
   mainWindow.on('will-move', () => stealth.setInteractionActive(true))
-  mainWindow.on('moved', () => stealth.setInteractionActive(false))
+  mainWindow.on('moved', () => { if (!windowDrag.isActive()) stealth.setInteractionActive(false) })
   mainWindow.on('will-resize', () => stealth.setInteractionActive(true))
-  mainWindow.on('resized', () => stealth.setInteractionActive(false))
+  mainWindow.on('resized', () => { if (!windowDrag.isActive()) stealth.setInteractionActive(false) })
 
   if (process.env['ELECTRON_RENDERER_URL']) {
     void mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
@@ -281,7 +286,10 @@ function registerIpc(): void {
       height: Math.max(180, Math.round(bounds.height))
     }, false)
   })
-  ipcMain.on('window:interaction', (_event, active: boolean) => stealth.setInteractionActive(active))
+  ipcMain.on('window:drag-start', (event) => { if (event.sender === mainWindow?.webContents) windowDrag.start() })
+  ipcMain.on('window:drag-move', (event) => { if (event.sender === mainWindow?.webContents) windowDrag.move() })
+  ipcMain.on('window:drag-end', (event) => { if (event.sender === mainWindow?.webContents) windowDrag.stop() })
+  ipcMain.on('window:interaction', (_event, active: boolean) => stealth.setInteractionActive(active || windowDrag.isActive()))
   ipcMain.on('window:pointer-left', () => stealth.pointerLeft())
   ipcMain.on('window:minimize', () => mainWindow?.minimize())
   ipcMain.on('window:close', () => stealth.hideToTray())
@@ -329,6 +337,7 @@ nativeUpdater.on('before-quit-for-update', () => {
 })
 
 app.on('before-quit', (event) => {
+  windowDrag.stop()
   quitting = true
   stealth.destroy()
   if (flushingBeforeQuit) return
