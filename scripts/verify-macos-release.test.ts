@@ -42,7 +42,12 @@ describe('macOS release verification', () => {
     const h = harness()
     h.run()
     expect(h.calls.filter(c => c.command.endsWith('/codesign') && c.args[0] === '--verify')).toHaveLength(4)
-    expect(h.calls.filter(c => c.command.endsWith('/lipo')).map(c => c.args[1])).toEqual(['x86_64', 'x86_64', 'arm64', 'arm64'])
+    const lipoCalls = h.calls.filter(c => c.command.endsWith('/lipo'))
+    expect(lipoCalls.map(c => c.args[2])).toEqual(['x86_64', 'x86_64', 'arm64', 'arm64'])
+    for (const call of lipoCalls) {
+      expect(call.args[0]).toContain('/Contents/MacOS/')
+      expect(call.args[1]).toBe('-verify_arch')
+    }
     expect(h.calls.filter(c => c.args[0] === '-e')).toHaveLength(2)
     expect(h.calls.filter(c => c.args[0] === 'detach')).toHaveLength(2)
     expect(h.removed).toHaveLength(4)

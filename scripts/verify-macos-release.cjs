@@ -23,7 +23,7 @@ function verifyApp(appPath, arch) {
   run('/usr/bin/codesign', ['--verify', '--deep', '--strict', '--verbose=2', appPath])
   run('/usr/bin/codesign', ['--display', '--verbose=2', appPath])
   const executable = path.join(appPath, 'Contents', 'MacOS', pkg.build.productName)
-  run('/usr/bin/lipo', ['-verify_arch', arch === 'x64' ? 'x86_64' : 'arm64', executable])
+  run('/usr/bin/lipo', [executable, '-verify_arch', arch === 'x64' ? 'x86_64' : 'arm64'])
   // Test native Electron loading without opening a window or touching reader data.
   // This is a runtime smoke test, not a Gatekeeper/notarization or UI acceptance test.
   if (arch === process.arch) {
