@@ -1,6 +1,6 @@
 {
   "name": "inkfish-reader",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "A private, cross-platform desktop TXT reader with a mouse-away stealth mode.",
   "main": "out/main/index.js",
@@ -45,6 +45,12 @@
       "out/**/*"
     ],
     "mac": {
+      "identity": "-",
+      "hardenedRuntime": true,
+      "strictVerify": true,
+      "notarize": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
       "category": "public.app-category.books",
       "target": [
         {

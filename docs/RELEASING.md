@@ -11,10 +11,10 @@ GitHub Actions 是 GitHub 提供的自动运行脚本的服务。仓库里的 `.
 - 不提供 Windows 便携版。发布给用户的是 NSIS 安装版。
 - 更新不修改原始 TXT，应用数据目录和 appId 保持不变。建议发布前备份测试机的应用数据。
 
-## 第一次发布 v0.2.0
+## 首次发布流程（v0.2.0 历史示例）
 
 1. 在 GitHub 打开本仓库，点击顶部 **Actions**。如果出现启用工作流的提示，启用它。
-2. 本地将本次代码（包括工作流文件）提交、推送到 `main`。版本号已经设为 `0.2.0`。如果代码已提交，可跳过提交命令。
+2. 本地将代码（包括工作流文件）提交、推送到 `main`。以下为最初 `0.2.0` 的示例；当前版本请使用 `package.json` 中的版本号，不要重新推送旧标签。如果代码已提交，可跳过提交命令。
 
    ```bash
    git add .
@@ -55,9 +55,26 @@ git push origin v0.2.1
 
 - Windows 自动更新依赖同一 Release 中的 `latest.yml` 和它引用的安装文件；`.blockmap` 用于差分下载。不要手改这些文件，也不要只上传 EXE。
 - macOS 提供 `x64`（Intel）和 `arm64`（Apple Silicon）DMG/ZIP。两个架构在同一个任务中打包，避免更新元数据被不同任务相互覆盖。
-- 当前构建未配置签名证书。Windows 可能显示未知发布者提示；macOS 可能被 Gatekeeper 拦截，不能将当前构建当成已签名、公证的正式分发方案。配置 Apple Developer ID 签名、公证后，还需要接入并验证 macOS 自动安装。
+- 当前构建未配置开发者签名证书。Windows 可能显示未知发布者提示；macOS 从 0.2.1 使用 ad-hoc 签名，但仍可能被 Gatekeeper 拦截，不能将它当成已获 Apple 认证、公证的分发方案。配置 Apple Developer ID 签名、公证后，还需要接入并验证 macOS 自动安装。
 - 没有可用的正式 Release、无法访问 GitHub、下载失败时，应用会显示提示，允许重试或打开发布页。
 - 一次完整更新验收需要两套真实安装包：安装 `0.2.0`，发布更高版本（例如 `0.2.1`），在 `0.2.0` 里检查、下载、重启安装，确认版本号和阅读进度。单元测试和 `npm run dev` 不代表这一流程已实机通过。
 - 本次只新增发布能力，不会因普通 `git push origin main` 自动发布；必须推送版本标签才会运行。
 
 参考：[electron-builder 更新文档](https://www.electron.build/v26/docs/features/auto-update/)、[GitHub 工作流运行说明](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs)。
+
+## macOS 签名与首次运行
+
+0.2.0 的 macOS 包跳过了重新签名，可能出现 `code has no resources but signature indicates they must be present`。这是签名完整性错误，不等于普通的“未知开发者”提示。请安装后续修复版本，不要通过关闭系统安全保护来强行打开旧包。
+
+从 0.2.1 开始，配置 `mac.identity: "-"` 显式进行 ad-hoc 签名；保持 Hardened Runtime 开启，主应用和子组件使用 `build/entitlements.mac.plist`，包含 Electron 所需 JIT 和库加载权限。这不需要付费证书，也不提供 Apple 开发者身份认证或公证。
+
+Actions 的 **Verify macOS release archives and runtime** 步骤会解压两个架构的 ZIP、只读挂载 DMG，对里面的应用运行 `codesign --verify --deep --strict`，检查二进制架构，并对运行机器的原生架构进行 Electron 加载测试。任一失败都会阻止上传与发布草稿。此检查不是 Gatekeeper 放行证明，也不替代真实 Mac 上的界面验收。`spctl` 仍可能因未公证而拒绝应用，不将它作为 ad-hoc 构建的成功条件。
+
+安装时选择 `arm64`（M 系列芯片）或 `x64`（Intel）的 DMG，将应用拖到“应用程序”，退出旧版本后替换。仅从自己的可信 Release 下载；如果系统提供“系统设置 → 隐私与安全 → 仍要打开”，可按系统提示确认。没有此入口或仍提示损坏时，先在 Mac 终端检查：
+
+```bash
+codesign --verify --deep --strict --verbose=2 "/Applications/墨隐阅读.app"
+spctl --assess --type execute --verbose=4 "/Applications/墨隐阅读.app"
+```
+
+记录 macOS 版本、安装包文件名和输出以便排查。不要全局关闭 Gatekeeper。未来接入正式签名时，需要把 `identity: "-"` 改为 Developer ID 身份，配置证书和公证凭据，并重新进行分发验收。

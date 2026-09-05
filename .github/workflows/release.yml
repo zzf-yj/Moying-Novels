@@ -42,6 +42,9 @@ jobs:
         run: npx electron-builder ${{ matrix.args }} --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Verify macOS release archives and runtime
+        if: runner.os == 'macOS'
+        run: node scripts/verify-macos-release.cjs
       - uses: actions/upload-artifact@v4
         with:
           name: release-${{ matrix.artifact }}
@@ -60,6 +63,7 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           pattern: release-*
@@ -79,3 +83,6 @@ jobs:
             gh release create "$RELEASE_TAG" --verify-tag --draft --title "墨隐阅读 $RELEASE_TAG" --generate-notes
           fi
           gh release upload "$RELEASE_TAG" artifacts/* --clobber
+          if [ -f "docs/releases/$RELEASE_TAG.md" ]; then
+            gh release edit "$RELEASE_TAG" --notes-file "docs/releases/$RELEASE_TAG.md"
+          fi

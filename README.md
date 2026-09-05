@@ -127,7 +127,7 @@ npm run dist:local
 - 目前仅支持 TXT，不支持 EPUB、MOBI 或在线书源。
 - 单个 TXT 文件最大支持 30 MB，避免超大文本造成异常内存占用。
 - 章节识别基于常见标题规则，排版特殊的文本可能会被视为单章。
-- macOS 发布包尚未配置代码签名与 Apple 公证。
+- 从 0.2.1 开始，macOS 使用 ad-hoc 签名，并在发布前校验 DMG/ZIP 内应用的签名完整性。它不等于 Apple Developer ID 签名或公证，首次运行仍可能被 Gatekeeper 拦截；macOS 仍采用手动更新。遇到“文件已损坏”时请参考[排查说明](./docs/RELEASING.md#macos-签名与首次运行)。
 
 ## 参与开发
 
