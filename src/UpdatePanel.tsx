@@ -17,20 +17,49 @@ export function UpdatePanel({ currentVersion, close, beforeInstall }: { currentV
     idle: '检查是否有新版本', checking: '正在检查更新…', current: state.message ?? '当前已是最新版本，无需更新。', available: `发现新版本 ${state.version ?? ''}`,
     downloading: `正在下载 ${state.percent ?? 0}%`, downloaded: '下载完成，可重启安装', installing: '正在准备重启…', error: '更新失败', development: '开发模式'
   }
+  const showsNextVersion = Boolean(state.version) && ['available', 'downloading', 'downloaded', 'installing'].includes(state.status)
+  const percent = Math.min(100, Math.max(0, state.percent ?? 0))
   return <div className="overlay" onClick={close}>
     <aside className="drawer update-drawer" role="dialog" aria-modal="true" aria-labelledby="update-title" onClick={event => event.stopPropagation()}>
-      <div className="drawer-title"><h2 id="update-title">版本更新</h2><button aria-label="关闭更新面板" onClick={close}>×</button></div>
-      <p>当前版本 v{currentVersion}</p>
-      <p role="status" aria-live="polite">{labels[state.status]}</p>
+      <div className="drawer-title">
+        <div><span className="eyebrow">SOFTWARE UPDATE</span><h2 id="update-title">版本更新</h2></div>
+        <button aria-label="关闭更新面板" onClick={close}>×</button>
+      </div>
+
+      <div className="update-hero">
+        <div className="update-version">
+          <small>当前版本</small>
+          <strong>v{currentVersion}</strong>
+        </div>
+        {showsNextVersion && <>
+          <span className="update-arrow" aria-hidden="true">→</span>
+          <div className="update-version next">
+            <small>最新版本</small>
+            <strong>v{state.version}</strong>
+          </div>
+        </>}
+      </div>
+
+      <div className={`update-status is-${state.status}`} role="status" aria-live="polite">
+        <span className="update-dot" aria-hidden="true" />
+        <p>{labels[state.status]}</p>
+      </div>
       {state.message && state.status !== 'current' && <p className="settings-note">{state.message}</p>}
-      {state.status === 'downloading' && <progress aria-label="更新下载进度" max={100} value={state.percent ?? 0} />}
-      {error && <p role="alert">{error}</p>}
+
+      {state.status === 'downloading' && (
+        <div className="update-progress" role="progressbar" aria-label="更新下载进度" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
+          <div className="update-progress-fill" style={{ width: `${percent}%` }} />
+        </div>
+      )}
+      {error && <p className="update-error" role="alert">{error}</p>}
+
       <div className="update-actions">
         {state.status === 'available' && <button className="primary" onClick={() => run(state.automatic ? window.reader.downloadUpdate : window.reader.openReleases)}>{state.automatic ? '下载更新' : '前往下载新版'}</button>}
         {state.status === 'downloaded' && <button className="primary" onClick={() => run(async () => { await beforeInstall(); await window.reader.installUpdate() })}>重启并更新</button>}
-        {!busy && state.status !== 'downloaded' && <button className="primary" onClick={() => run(window.reader.checkUpdate)}>检查更新</button>}
+        {!busy && state.status !== 'downloaded' && <button className={state.status === 'available' ? 'update-secondary' : 'primary'} onClick={() => run(window.reader.checkUpdate)}>检查更新</button>}
         <button className="update-link" onClick={() => run(window.reader.openReleases)}>GitHub 发布页 ↗</button>
       </div>
+
       {state.notes && <details className="update-notes" open>
         <summary>更新说明</summary>
         <div className="update-notes-body">{state.notes}</div>
