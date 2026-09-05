@@ -51,6 +51,10 @@ describe('macOS release verification', () => {
     expect(h.calls.filter(c => c.args[0] === '-e')).toHaveLength(2)
     expect(h.calls.filter(c => c.args[0] === 'detach')).toHaveLength(2)
     expect(h.removed).toHaveLength(4)
+    const extractedZips = h.calls.filter(c => c.command.endsWith('/ditto'))
+    expect(extractedZips.map(c => path.posix.basename(c.args[2]))).toEqual([
+      `moying-novels-${pkg.version}-x64.zip`, `moying-novels-${pkg.version}-arm64.zip`
+    ])
   })
 
   it('fails immediately when a delivered app has an invalid signature', () => {
@@ -61,6 +65,8 @@ describe('macOS release verification', () => {
   })
 
   it('explicitly signs with required runtime entitlements', () => {
+    expect(pkg.build.mac.artifactName).toBe('moying-novels-${version}-${arch}.${ext}')
+    expect(pkg.build.nsis.artifactName).toBe('moying-novels-${version}-${arch}-Setup.${ext}')
     expect(pkg.build.mac.identity).toBe('-')
     expect(pkg.build.mac.hardenedRuntime).toBe(true)
     expect(pkg.build.mac.strictVerify).toBe(true)

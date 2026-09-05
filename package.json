@@ -68,7 +68,7 @@
           ]
         }
       ],
-      "artifactName": "${productName}-${version}-${arch}.${ext}"
+      "artifactName": "moying-novels-${version}-${arch}.${ext}"
     },
     "win": {
       "target": [
@@ -81,7 +81,7 @@
       ]
     },
     "nsis": {
-      "artifactName": "${productName}-${version}-${arch}-Setup.${ext}",
+      "artifactName": "moying-novels-${version}-${arch}-Setup.${ext}",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true

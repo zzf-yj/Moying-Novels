@@ -38,7 +38,9 @@ function main() {
   const releaseDir = path.resolve(__dirname, '../release')
   for (const arch of ['x64', 'arm64']) {
     for (const extension of ['zip', 'dmg']) {
-      const archive = path.join(releaseDir, `${pkg.build.productName}-${pkg.version}-${arch}.${extension}`)
+      const archiveName = pkg.build.mac.artifactName
+        .replace('${version}', pkg.version).replace('${arch}', arch).replace('${ext}', extension)
+      const archive = path.join(releaseDir, archiveName)
       if (!existsSync(archive)) throw new Error(`Missing release artifact: ${archive}`)
       const tempDir = mkdtempSync(path.join(tmpdir(), 'moying-verify-'))
       const unpackDir = path.join(tempDir, 'contents')
