@@ -1,0 +1,8 @@
+node_modules/
+out/
+release/
+dist/
+*.log
+*.tsbuildinfo
+.DS_Store
+/window-*.png
