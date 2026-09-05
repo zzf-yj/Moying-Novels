@@ -1,6 +1,6 @@
 {
   "name": "inkfish-reader",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": true,
   "description": "A private, cross-platform desktop TXT reader with a mouse-away stealth mode.",
   "main": "out/main/index.js",
