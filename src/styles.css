@@ -143,6 +143,21 @@ h1 { margin-bottom: 0; font-family: Georgia, "Songti SC", serif; font-size: clam
 }
 
 .overlay { position: absolute; z-index: 40; inset: 0; background: rgba(26,32,34,.25); display: flex; justify-content: flex-end; }
+.overlay.center { justify-content: center; align-items: center; padding: clamp(10px, 4vw, 24px); }
+.donate-card { position: relative; width: min(clamp(230px, 84vw, 420px), 100%); max-height: 100%; overflow: auto; padding: clamp(16px, 5vw, 30px) clamp(14px, 5vw, 28px) clamp(12px, 4vw, 22px); border-radius: clamp(12px, 4vw, 18px); background: #faf8f2; box-shadow: 0 clamp(14px, 5vh, 32px) clamp(30px, 9vw, 64px) rgba(26,32,34,.28); text-align: center; scrollbar-width: thin; }
+.donate-close { position: absolute; top: clamp(4px, 1.4vw, 8px); right: clamp(4px, 1.4vw, 8px); width: clamp(28px, 8vw, 34px); height: clamp(28px, 8vw, 34px); border: 0; border-radius: 9px; background: transparent; font-size: clamp(16px, 4.5vw, 20px); line-height: 1; cursor: pointer; }
+.donate-close:hover { background: rgba(38,50,56,.08); }
+.donate-card .eyebrow { margin-bottom: 2px; }
+.donate-card h2 { margin: 0 0 clamp(4px, 1.4vh, 8px); font-family: Georgia, "Songti SC", serif; font-size: clamp(17px, 5vw, 24px); }
+.donate-text { margin: 0 0 clamp(10px, 2.6vh, 16px); color: #52676e; font-size: clamp(11px, 3.2vw, 14px); line-height: 1.6; }
+.donate-qrs { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(10px, 3vw, 18px); margin-bottom: clamp(8px, 2vh, 12px); }
+.donate-qr { margin: 0; display: grid; justify-items: center; gap: clamp(5px, 1.4vh, 8px); }
+.donate-qr-frame { width: clamp(132px, 44vw, 208px); aspect-ratio: 1; padding: clamp(8px, 2.6vw, 12px); border: 1px solid rgba(38,50,56,.12); border-radius: clamp(10px, 3vw, 14px); background: #fff; display: grid; place-items: center; overflow: hidden; }
+.donate-qr-frame img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.donate-qr-pending { width: 55%; aspect-ratio: 1; border-radius: 50%; border: 2px dashed rgba(38,50,56,.25); }
+.donate-qr figcaption { font-size: clamp(10px, 3vw, 12px); font-weight: 700; letter-spacing: .06em; color: #52676e; }
+.donate-entry { color: #9a6a5a; }
+.donate-entry:hover { background: rgba(154,106,90,.12); }
 .drawer { width: clamp(210px, 72vw, 520px); height: 100%; padding: clamp(12px, 3.5vw, 28px); overflow: auto; background: #faf8f2; box-shadow: clamp(-24px, -3vw, -12px) 0 clamp(28px, 8vw, 58px) rgba(38,50,56,.18); font-size: clamp(11px, 2.3vw, 14px); }
 .settings-drawer { width: clamp(210px, 68vw, 440px); background: rgba(250,248,242,.9); backdrop-filter: blur(14px); }
 .drawer-title { display: flex; align-items: start; justify-content: space-between; margin-bottom: clamp(12px, 3.4vh, 24px); }

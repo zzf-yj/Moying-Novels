@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { DonatePanel } from './DonatePanel'
 import { UpdatePanel } from './UpdatePanel'
 import { atChapterEnd, endScreenReadingTime, readingChapterAt } from './chapter-navigation'
 import { useWindowDrag } from './use-window-drag'
@@ -89,6 +90,7 @@ function App(): React.JSX.Element {
   const [state, setState] = useState<PersistedState | null>(null)
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null)
   const [updatesOpen, setUpdatesOpen] = useState(false)
+  const [donateOpen, setDonateOpen] = useState(false)
   const [opened, setOpened] = useState<OpenedBook | null>(null)
   const [chapterIndex, setChapterIndex] = useState(0)
   const [chapterWindow, setChapterWindow] = useState<ChapterWindow | null>(null)
@@ -462,6 +464,7 @@ function App(): React.JSX.Element {
             <button title={appInfo?.repositoryUrl} onClick={() => void window.reader.openProjectPage().catch((error) => setNotice(error instanceof Error ? error.message : String(error)))}>
               GitHub <span aria-hidden="true">↗</span>
             </button>
+            <button className="donate-entry" onClick={() => setDonateOpen(true)}>捐赠 <span aria-hidden="true">♥</span></button>
           </footer>
         </>
       ) : (
@@ -553,6 +556,7 @@ function App(): React.JSX.Element {
         </div>
       )}
 
+      {donateOpen && <DonatePanel close={() => setDonateOpen(false)} />}
       {updatesOpen && !opened && <UpdatePanel currentVersion={appInfo?.version ?? '—'} close={() => setUpdatesOpen(false)} beforeInstall={async () => {
         window.clearTimeout(saveTimer.current)
         const pending = pendingProgress.current
