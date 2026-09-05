@@ -70,6 +70,13 @@ describe('window dragging', () => {
     expect(window.setBounds).toHaveBeenLastCalledWith({ x: 160, y: 180, width: 466, height: 510 }, false)
     expect(window.setBounds.mock.calls.every(([, animate]) => animate === false)).toBe(true)
   })
+  it('snaps drag positions onto whole physical pixels at fractional DPI', () => {
+    const { controller, window } = setup()
+    controller.start()
+    cursor.x = 261; cursor.y = 331
+    controller.move()
+    expect(window.setBounds).toHaveBeenLastCalledWith({ x: 162, y: 182, width: 440, height: 640 }, false)
+  })
   it('prevents mouse-away hiding while dragging and resumes it after release', () => {
     vi.useFakeTimers()
     const { window } = setup()

@@ -7,11 +7,14 @@ import { AppStore } from './store'
 import { parseChapters } from './chapter-parser'
 import { StealthController } from './stealth-controller'
 import { WindowDragController } from './window-drag-controller'
+import { dipStep, snapDown, snapNearest, snapUp } from './dip-scale'
 import { UpdateController, releasesUrl } from './update-controller'
 import type { BookMeta, ReaderSettings, ReadingProgress, WindowBounds } from '../../shared/types'
 
 const legacyUserDataDirectory = app.getPath('userData')
-const dedicatedUserDataDirectory = path.join(app.getPath('appData'), '墨隐阅读')
+// Development runs alongside the installed app; keep their stores and single-instance locks apart.
+const isDevelopment = Boolean(process.env['ELECTRON_RENDERER_URL'])
+const dedicatedUserDataDirectory = path.join(app.getPath('appData'), isDevelopment ? '墨隐阅读-dev' : '墨隐阅读')
 const maximumBookBytes = 30 * 1024 * 1024
 const maximumStoredBookBytes = 60 * 1024 * 1024
 const projectUrl = 'https://github.com/zzf-yj/Moying-Novels'
@@ -279,11 +282,14 @@ function registerIpc(): void {
   ipcMain.handle('window:get-bounds', () => mainWindow?.getBounds())
   ipcMain.on('window:set-bounds', (_event, bounds: Electron.Rectangle) => {
     if (!mainWindow || mainWindow.isDestroyed()) return
+    // Keep every edge on whole physical pixels (see dip-scale.ts); unsnapped values make the
+    // on-screen size wobble ±1px while dragging and reflow the reader on fractional-DPI screens.
+    const step = dipStep(screen.getDisplayMatching(mainWindow.getBounds()).scaleFactor)
     mainWindow.setBounds({
-      x: Math.round(bounds.x),
-      y: Math.round(bounds.y),
-      width: Math.max(240, Math.round(bounds.width)),
-      height: Math.max(180, Math.round(bounds.height))
+      x: snapNearest(bounds.x, step),
+      y: snapNearest(bounds.y, step),
+      width: Math.max(snapUp(240, step), snapDown(bounds.width, step)),
+      height: Math.max(snapUp(180, step), snapDown(bounds.height, step))
     }, false)
   })
   ipcMain.on('window:drag-start', (event) => { if (event.sender === mainWindow?.webContents) windowDrag.start() })
